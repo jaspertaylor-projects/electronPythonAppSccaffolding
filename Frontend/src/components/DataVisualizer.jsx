@@ -4,7 +4,7 @@
 // Key Internal Exported To: Frontend/src/App.jsx
 
 import React, { useState } from 'react';
-import Plotly from 'plotly.js';
+import Plotly from 'plotly.js/dist/plotly';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { Upload, FileText, Trash2, BarChart2 } from 'lucide-react';
 import logger from '../lib/logger';
