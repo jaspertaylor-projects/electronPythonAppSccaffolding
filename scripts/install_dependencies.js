@@ -35,16 +35,7 @@ run('pnpm', ['install'], rootDir);
 console.log('[Setup] Ensuring Electron binary is installed...');
 run('pnpm', ['rebuild', 'electron'], rootDir);
 
-// 2. Install Frontend Dependencies
-console.log('\n--- Installing Frontend Dependencies ---');
-const frontendDir = path.join(rootDir, 'Frontend');
-if (fs.existsSync(path.join(frontendDir, 'package.json'))) {
-  run('pnpm', ['install'], frontendDir);
-} else {
-  console.error('Frontend directory or package.json not found.');
-}
-
-// 3. Install Backend Dependencies with uv
+// 2. Install Backend Dependencies with uv
 console.log('\n--- Installing Backend Dependencies (uv) ---');
 const backendDir = path.join(rootDir, 'Backend', 'API');
 

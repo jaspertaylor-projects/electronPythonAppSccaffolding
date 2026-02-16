@@ -9,8 +9,7 @@
     "dev:frontend": "cd Frontend && pnpm dev",
     "dev:electron": "wait-on tcp:5173 && nodemon --watch electron --exec electron .",
     "build:web": "cd Frontend && pnpm build",
-    "build:desktop": "cd Frontend && pnpm build && electron-builder",
-    "postinstall": "cd Frontend && pnpm install"
+    "build:desktop": "cd Frontend && pnpm build && electron-builder"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
