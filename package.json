@@ -1,0 +1,54 @@
+{
+  "name": "electron-fastapi-react-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "setup": "node scripts/install_dependencies.js",
+    "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:electron\"",
+    "dev:frontend": "cd Frontend && pnpm dev",
+    "dev:electron": "wait-on tcp:5173 && nodemon --watch electron --exec electron .",
+    "build:web": "cd Frontend && pnpm build",
+    "build:desktop": "cd Frontend && pnpm build && electron-builder",
+    "postinstall": "cd Frontend && pnpm install"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "electron-builder",
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "nodemon": "^3.1.0",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "electron-log": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.example.app",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "Frontend/dist/**/*",
+      "Backend/API/**/*",
+      "!Backend/API/.venv/**/*",
+      "!**/__pycache__/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "Backend/API",
+        "to": "api",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}
