@@ -1,4 +1,6 @@
-.puraviba/
+.puraviba/autoimport.yaml
+.puraviba/project.json
+.puraviba/rules.json
 __pycache__/
 .venv/
 node_modules/

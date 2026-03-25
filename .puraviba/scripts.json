@@ -1,0 +1,12 @@
+{
+  "Setup": {
+    "path": "./",
+    "type": "standard",
+    "script": "pnpm run setup"
+  },
+  "Launch": {
+    "path": "./",
+    "type": "standard",
+    "script": "pnpm run dev"
+  }
+}
