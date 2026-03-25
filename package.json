@@ -2,14 +2,15 @@
   "name": "electron-fastapi-react-monorepo",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.15.1",
   "main": "electron/main.js",
   "scripts": {
     "setup": "node scripts/install_dependencies.js",
-    "dev": "concurrently \"pnpm dev:frontend\" \"pnpm dev:electron\"",
-    "dev:frontend": "cd Frontend && pnpm dev",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:electron\"",
+    "dev:frontend": "node scripts/run_pnpm.js --dir Frontend dev",
     "dev:electron": "wait-on tcp:5173 && nodemon --watch electron --exec electron .",
-    "build:web": "cd Frontend && pnpm build",
-    "build:desktop": "cd Frontend && pnpm build && electron-builder"
+    "build:web": "node scripts/run_pnpm.js --dir Frontend build",
+    "build:desktop": "npm run build:web && electron-builder"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

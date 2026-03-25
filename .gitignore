@@ -1,7 +1,12 @@
 .puraviba/
 __pycache__/
+.venv/
 node_modules/
 .env
 .DS_Store
 *.log
+dist/
+Frontend/dist/
+.corepack/
+.pip-cache/
 .pnpm-store/

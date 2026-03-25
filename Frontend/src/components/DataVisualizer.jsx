@@ -2,6 +2,7 @@
 // Component for uploading, parsing, and visualizing 2-column text data using Plotly.
 // Key Internal Depends On: Frontend/src/lib/logger.js
 // Key Internal Exported To: Frontend/src/App.jsx
+// (default welcome component, feel free to delete or completely edit)
 
 import React, { useState } from 'react';
 import Plotly from 'plotly.js/dist/plotly';
@@ -83,82 +84,46 @@ export default function DataVisualizer() {
   const selectedFile = files.find(f => f.id === selectedFileId);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      marginTop: '2rem',
-      borderTop: '1px solid #444',
-      paddingTop: '2rem'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-          <BarChart2 style={{ marginRight: '0.5rem' }} /> Data Visualization
-        </h2>
-        <label style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          background: '#2563eb',
-          color: 'white',
-          padding: '0.5rem 1rem',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '0.9rem',
-          fontWeight: 'bold'
-        }}>
+    <div className="signal-workbench">
+      {/* (default welcome component, feel free to delete or completely edit) */}
+      <div className="signal-workbench__toolbar">
+        <h3 className="signal-workbench__title">
+          <BarChart2 size={20} />
+          Flow visualizer
+        </h3>
+        <label className="signal-workbench__upload">
           <Upload size={16} />
-          Load Data File
-          <input type="file" accept=".txt,.csv,.dat" onChange={handleFileUpload} style={{ display: 'none' }} />
+          Load a signal file
+          <input
+            type="file"
+            accept=".txt,.csv,.dat"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+          />
         </label>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
-        {/* Sidebar List */}
-        <div style={{
-          width: '250px',
-          background: '#1a1a1a',
-          borderRadius: '8px',
-          padding: '1rem',
-          overflowY: 'auto',
-          border: '1px solid #333'
-        }}>
-          <h4 style={{ marginTop: 0, marginBottom: '1rem', color: '#888' }}>Loaded Files</h4>
-          {files.length === 0 && <p style={{ color: '#555', fontSize: '0.9rem' }}>No files loaded.</p>}
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+      <div className="signal-workbench__content">
+        {/* (default welcome component, feel free to delete or completely edit) */}
+        <div className="signal-workbench__sidebar">
+          <h4 className="signal-workbench__sidebar-title">Loaded files</h4>
+          {files.length === 0 && (
+            <p className="signal-workbench__sidebar-empty">No files loaded yet.</p>
+          )}
+          <ul className="signal-workbench__file-list">
             {files.map(file => (
               <li
                 key={file.id}
                 onClick={() => setSelectedFileId(file.id)}
-                style={{
-                  padding: '0.75rem',
-                  marginBottom: '0.5rem',
-                  borderRadius: '4px',
-                  background: selectedFileId === file.id ? '#2563eb' : '#333',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  transition: 'background 0.2s'
-                }}
+                className={`signal-workbench__file ${selectedFileId === file.id ? 'signal-workbench__file--active' : ''}`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                <div className="signal-workbench__file-main">
                   <FileText size={14} />
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.9rem' }}>
-                    {file.name}
-                  </span>
+                  <span className="signal-workbench__file-name">{file.name}</span>
                 </div>
                 <button
                   onClick={(e) => removeFile(file.id, e)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'white',
-                    cursor: 'pointer',
-                    padding: '2px',
-                    display: 'flex',
-                    opacity: 0.7
-                  }}
+                  className="signal-workbench__file-remove"
                   title="Remove file"
                 >
                   <Trash2 size={14} />
@@ -168,18 +133,8 @@ export default function DataVisualizer() {
           </ul>
         </div>
 
-        {/* Plot Area */}
-        <div style={{
-          flex: 1,
-          background: '#1a1a1a',
-          borderRadius: '8px',
-          border: '1px solid #333',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          overflow: 'hidden',
-          position: 'relative'
-        }}>
+        {/* (default welcome component, feel free to delete or completely edit) */}
+        <div className="signal-workbench__plot-shell">
           {selectedFile ? (
             <Plot
               data={[
@@ -188,27 +143,27 @@ export default function DataVisualizer() {
                   y: selectedFile.data.y,
                   type: 'scatter',
                   mode: 'lines+markers',
-                  marker: { color: '#60a5fa' },
-                  line: { color: '#2563eb' }
+                  marker: { color: '#8ff7ff', size: 8 },
+                  line: { color: '#53b9ff', width: 3 }
                 }
               ]}
               layout={{
                 autosize: true,
                 title: selectedFile.name,
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: '#ccc' },
-                xaxis: { gridcolor: '#333', title: 'Column 1' },
-                yaxis: { gridcolor: '#333', title: 'Column 2' },
+                  paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(10,24,48,0.2)',
+                font: { color: '#ddffff' },
+                xaxis: { gridcolor: 'rgba(118, 204, 216, 0.18)', title: 'Column 1' },
+                yaxis: { gridcolor: 'rgba(118, 204, 216, 0.18)', title: 'Column 2' },
                 margin: { t: 50, r: 30, l: 50, b: 50 }
               }}
               useResizeHandler={true}
               style={{ width: '100%', height: '100%' }}
             />
           ) : (
-            <div style={{ color: '#555', textAlign: 'center' }}>
-              <BarChart2 size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-              <p>Select a file to view plot</p>
+            <div className="signal-workbench__empty">
+              <BarChart2 size={48} />
+              <p>Select a file to watch its data drift into view.</p>
             </div>
           )}
         </div>
