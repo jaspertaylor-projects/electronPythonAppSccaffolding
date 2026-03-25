@@ -1,59 +1,147 @@
 // scripts/install_dependencies.js
-// Purpose: Automates the installation of dependencies for Root, Frontend, and Backend environments.
+// Purpose: Bootstraps the local JS workspace and Python backend environment in one command.
 // Key Internal Depends On: package.json, Frontend/package.json, Backend/API/pyproject.toml
-// Key Internal Exported To: (none)
+// Key Internal Exported To: package.json
 
 const { spawnSync } = require('child_process');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..');
-
-/**
- * Helper to run shell commands synchronously.
- */
-function run(command, args, cwd, shell = true) {
-  console.log(`[Setup] Running: ${command} ${args.join(' ')} in ${cwd}`);
-  const result = spawnSync(command, args, { 
-    cwd, 
-    stdio: 'inherit', 
-    shell 
-  });
-  if (result.status !== 0) {
-    console.error(`[Setup] Command failed with code ${result.status}`);
-    process.exit(result.status);
-  }
-}
-
-// 1. Install Root Dependencies
-// This ensures devDependencies like 'concurrently', 'electron', 'wait-on' are installed.
-console.log('\n--- Installing Root Dependencies ---');
-run('pnpm', ['install'], rootDir);
-
-// Explicitly rebuild electron to ensure the binary is downloaded.
-// This fixes the "Electron failed to install correctly" error caused by suppressed postinstall scripts.
-console.log('[Setup] Ensuring Electron binary is installed...');
-run('pnpm', ['rebuild', 'electron'], rootDir);
-
-// 2. Install Backend Dependencies with uv
-console.log('\n--- Installing Backend Dependencies (uv) ---');
 const backendDir = path.join(rootDir, 'Backend', 'API');
+const corepackHome = path.join(rootDir, '.corepack');
+const pipCacheDir = path.join(rootDir, '.pip-cache');
+const isDryRun = process.argv.includes('--dry-run');
 
-// Check if uv is installed
-const uvCheck = spawnSync('uv', ['--version'], { shell: true });
-if (uvCheck.status !== 0) {
-  console.error('Error: "uv" is not installed or not in PATH.');
-  console.error('Please install uv: https://github.com/astral-sh/uv');
+function fail(message) {
+  console.error(`[Setup] ${message}`);
   process.exit(1);
 }
 
-// Create venv if it doesn't exist (uv venv creates .venv in cwd)
-console.log('Creating/Updating virtual environment...');
-run('uv', ['venv'], backendDir);
+function quoteForLog(value) {
+  return /\s/.test(value) ? `"${value}"` : value;
+}
 
-// Install dependencies from pyproject.toml
-console.log('Installing Python dependencies...');
-run('uv', ['pip', 'install', '.'], backendDir);
+function run(command, args, cwd, extraEnv = {}) {
+  console.log(`[Setup] ${cwd}`);
+  console.log(`         ${[command, ...args].map(quoteForLog).join(' ')}`);
+
+  if (isDryRun) {
+    return;
+  }
+
+  const result = spawnSync(command, args, {
+    cwd,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+    env: {
+      ...process.env,
+      ...extraEnv
+    }
+  });
+
+  if (result.status !== 0) {
+    fail(`Command failed with exit code ${result.status}.`);
+  }
+}
+
+function commandExists(command, args = ['--version']) {
+  const result = spawnSync(command, args, {
+    stdio: 'ignore',
+    shell: process.platform === 'win32'
+  });
+
+  return result.status === 0;
+}
+
+function resolvePythonCommand() {
+  const candidates = ['python3', 'python'];
+
+  for (const candidate of candidates) {
+    if (commandExists(candidate)) {
+      return candidate;
+    }
+  }
+
+  fail('Python 3 is required but was not found in PATH.');
+}
+
+function resolvePnpmInvocation() {
+  if (commandExists('pnpm')) {
+    return {
+      command: 'pnpm',
+      argsPrefix: [],
+      env: {}
+    };
+  }
+
+  if (commandExists('corepack')) {
+    return {
+      command: 'corepack',
+      argsPrefix: ['pnpm'],
+      env: { COREPACK_HOME: corepackHome }
+    };
+  }
+
+  fail('Neither pnpm nor Corepack was found in PATH. Install Node.js with Corepack support or pnpm and try again.');
+}
+
+function getVenvPythonPath() {
+  return process.platform === 'win32'
+    ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
+    : path.join(backendDir, '.venv', 'bin', 'python');
+}
+
+if (!commandExists('node')) {
+  fail('Node.js is required but was not found in PATH.');
+}
+
+const pythonCommand = resolvePythonCommand();
+const pnpmInvocation = resolvePnpmInvocation();
+
+if (!fs.existsSync(path.join(backendDir, 'pyproject.toml'))) {
+  fail(`Expected backend project at ${backendDir}, but pyproject.toml was not found.`);
+}
+
+fs.mkdirSync(corepackHome, { recursive: true });
+fs.mkdirSync(pipCacheDir, { recursive: true });
+
+console.log('\n--- Installing JavaScript Workspace Dependencies ---');
+run(
+  pnpmInvocation.command,
+  [...pnpmInvocation.argsPrefix, 'install'],
+  rootDir,
+  pnpmInvocation.env
+);
+
+// Electron occasionally needs an explicit rebuild so the binary is present.
+run(
+  pnpmInvocation.command,
+  [...pnpmInvocation.argsPrefix, 'rebuild', 'electron'],
+  rootDir,
+  pnpmInvocation.env
+);
+
+console.log('\n--- Creating Backend Virtual Environment ---');
+run(pythonCommand, ['-m', 'venv', '.venv'], backendDir);
+
+const venvPython = getVenvPythonPath();
+if (!isDryRun && !fs.existsSync(venvPython)) {
+  fail(`Virtual environment was created, but Python executable was not found at ${venvPython}.`);
+}
+
+console.log('\n--- Installing Backend Python Dependencies ---');
+run(
+  venvPython,
+  ['-m', 'pip', 'install', '.'],
+  backendDir,
+  {
+    PIP_CACHE_DIR: pipCacheDir,
+    PIP_DISABLE_PIP_VERSION_CHECK: '1',
+    PIP_NO_INPUT: '1'
+  }
+);
 
 console.log('\n--- Setup Complete ---');
-console.log('You can now run "pnpm dev" to start the application.');
+console.log('JavaScript dependencies live in this repo and the Python backend uses Backend/API/.venv.');
+console.log('Next step: run "npm run dev" from the project root.');
