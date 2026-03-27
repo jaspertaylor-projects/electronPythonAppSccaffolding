@@ -1,0 +1,29 @@
+# .puraviba/autoimport.yaml
+# Purpose: Configuration for the Puraviba editor's auto-import and package management features.
+# Key Internal Depends On: (none)
+# Key Internal Exported To: (none)
+
+version: "1.1"
+
+environments:
+  - id: backend
+    language: python
+    workdir: Backend/API
+    package_manager: uv
+    commands:
+      install: "uv pip install {packages}"
+      list: "uv pip list --format=json"
+    manifest_files:
+      - pyproject.toml
+      - uv.lock
+
+  - id: frontend
+    language: javascript
+    workdir: Frontend
+    package_manager: pnpm
+    commands:
+      install: "pnpm add {packages} --config.node-linker=hoisted"
+      list: "pnpm list --depth=-1 --json"
+    manifest_files:
+      - package.json
+      - pnpm-lock.yaml
